@@ -111,4 +111,11 @@ void main() {
     final r = v.evaluateText('Seiko automatico con cinturino in pelle', 50);
     expect(r.verdict, isNot(Verdict.scartato));
   });
+
+  test('prezzo simbolico e Seiko Mod scartati', () {
+    expect(v.evaluateText('Seiko 5 automatic vintage 1981', 9).verdict,
+        Verdict.scartato);
+    expect(v.evaluateText('Seiko Mod Joker NH35 40mm', 159).verdict,
+        Verdict.scartato);
+  });
 }

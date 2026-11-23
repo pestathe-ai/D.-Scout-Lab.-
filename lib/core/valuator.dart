@@ -86,7 +86,8 @@ class Settings {
 
 const redFlags = [
   'replica', 'aaa', 'clone', 'copia', 'falso', 'fake', 'homage', 'omaggio',
-  'ispirato', 'in stile', 'tipo rolex', 'non originale', 'imitazione', 'aliexpress',
+  'ispirato', 'in stile', 'tipo rolex', 'seiko mod', 'mod seiko', 'nh35', 'nh36',
+  'custom build', 'franken', 'non originale', 'imitazione', 'aliexpress',
 ];
 
 const partsOnly = [
@@ -207,6 +208,16 @@ class Valuator {
         model: model,
         verdict: Verdict.nonPertinente,
         reasons: ['Prezzo non trovato nel testo'],
+      );
+    }
+
+    if (price < 20) {
+      return _result(
+        brand: brand,
+        model: model,
+        price: price,
+        verdict: Verdict.scartato,
+        reasons: ['Prezzo simbolico (${price.round()} €): il vero prezzo è da chiedere'],
       );
     }
 
