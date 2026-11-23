@@ -4,6 +4,7 @@ import 'dart:io';
 
 import '../../lib/core/http_search.dart';
 import '../../lib/core/parsers.dart';
+import '../../lib/core/remote_listing.dart';
 
 String esc(String s) =>
     s.replaceAll('%', '%25').replaceAll('\r', '').replaceAll('\n', '%0A');
@@ -13,8 +14,9 @@ Future<void> run(String name, Future<List<RemoteItem>> Function() f) async {
   try {
     final items = await f();
     final withPrice = items.where((i) => i.price != null).length;
-    final sample = items.take(4).map((i) => '- ${i.title} | ${i.price} | ${i.url}').join('\n');
-    print('::notice title=probe $name::${esc('OK ${items.length} annunci ($withPrice con prezzo) in ${sw.elapsedMilliseconds} ms\n$sample')}');
+    final watches = items.where(acceptRemote).length;
+    final sample = items.take(6).map((i) => '- ${acceptRemote(i) ? 'OK' : 'NO'} ${i.title} | ${i.price} | ${i.url}').join('\n');
+    print('::notice title=probe $name::${esc('OK ${items.length} annunci ($withPrice con prezzo, $watches orologi) in ${sw.elapsedMilliseconds} ms\n$sample')}');
   } catch (e) {
     print('::warning title=probe $name::${esc('ERRORE: $e')}');
   }

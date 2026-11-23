@@ -16,6 +16,10 @@ class RemoteItem {
   final String? imageUrl;
   final String? place;
 
+  /// Categoria del sito: true = orologi, false = altra categoria,
+  /// null = il sito non lo dice.
+  final bool? isWatch;
+
   const RemoteItem({
     required this.source,
     required this.id,
@@ -25,11 +29,15 @@ class RemoteItem {
     this.url,
     this.imageUrl,
     this.place,
+    this.isWatch,
   });
 
   @override
   String toString() => '$source #$id "$title" ${price ?? '-'}€ ${url ?? ''}';
 }
+
+/// Id delle categorie "orologi" di Wallapop.
+const watchCategoryIds = {'9562', '10086'};
 
 // ---------------- helper JSON ----------------
 
@@ -139,6 +147,7 @@ List<RemoteItem> parseSubitoJson(dynamic data) {
       imageUrl: _subitoImage(m),
       place: str(dig(m, ['geo', 'town', 'value'])) ??
           str(dig(m, ['geo', 'city', 'value'])),
+      isWatch: _subitoIsWatch(m),
     ));
   }
   return out;
@@ -160,6 +169,32 @@ double? _subitoPrice(Map<String, dynamic> m) {
     return priceOf(first['key']) ?? priceOf(first['value']);
   }
   return priceOf(m['price']);
+}
+
+/// Subito: categoria 16 (Abbigliamento e Accessori) con tipologia
+/// "Orologi e gioielli" (chiave 12).
+bool? _subitoIsWatch(Map<String, dynamic> m) {
+  final cat = str(dig(m, ['category', 'id']));
+  if (cat != null && cat != '16') return false;
+  final f = m['features'];
+  final types = <dynamic>[];
+  if (f is Map) {
+    for (final k in ['/clothing_type', '/fashion/clothing_type']) {
+      final v = dig(f, [k, 'values']);
+      if (v is List) types.addAll(v);
+    }
+  } else if (f is List) {
+    for (final e in f) {
+      if (e is Map && '${e['uri']}'.contains('clothing_type') && e['values'] is List) {
+        types.addAll(e['values'] as List);
+      }
+    }
+  }
+  if (types.isEmpty) return null;
+  return types.any((t) =>
+      t is Map &&
+      (str(t['key']) == '12' ||
+          (str(t['value']) ?? '').toLowerCase().contains('orolog')));
 }
 
 String? _subitoImage(Map<String, dynamic> m) {
@@ -198,9 +233,20 @@ List<RemoteItem> parseWallapop(dynamic data) {
       imageUrl: str(dig(m, ['images', 0, 'urls', 'medium'])) ??
           str(dig(m, ['images', 0, 'medium'])),
       place: str(dig(m, ['location', 'city'])),
+      isWatch: _wallapopIsWatch(m),
     ));
   }
   return out;
+}
+
+/// Wallapop: sottocategorie "Watches" (9562 in Moda, 10086 in Collezionismo).
+bool? _wallapopIsWatch(Map<String, dynamic> m) {
+  final tax = m['taxonomy'];
+  if (tax is! List || tax.isEmpty) return null;
+  return tax.any((t) =>
+      t is Map &&
+      (watchCategoryIds.contains(str(t['id'])) ||
+          (str(t['name']) ?? '').toLowerCase().contains('watch')));
 }
 
 // ---------------- eBay (API ufficiale Browse) ----------------
@@ -228,6 +274,18 @@ List<RemoteItem> parseEbay(dynamic data) {
           url: str(e['itemWebUrl']),
           imageUrl: str(dig(e, ['image', 'imageUrl'])),
           place: str(dig(e, ['itemLocation', 'city'])),
+          isWatch: _ebayIsWatch(e),
         ),
   ];
+}
+
+bool? _ebayIsWatch(Map e) {
+  final cats = e['categories'];
+  if (cats is! List || cats.isEmpty) return null;
+  return cats.any((c) =>
+          c is Map &&
+          (str(c['categoryId']) == '31387' ||
+              (str(c['categoryName']) ?? '').toLowerCase().contains('orologi da polso')))
+      ? true
+      : null;
 }

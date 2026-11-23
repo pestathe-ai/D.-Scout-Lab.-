@@ -62,7 +62,7 @@ class Scout extends ChangeNotifier {
     return [
       for (final l in _listings.reversed)
         if (!l.dismissed) Entry(l, v.evaluate(l)),
-    ];
+    ].where((e) => e.valuation.verdict != Verdict.nonPertinente).toList();
   }
 
   List<Entry> get deals => entries
@@ -123,7 +123,8 @@ class Scout extends ChangeNotifier {
     for (final l in items) {
       if (!known.add(l.id)) continue;
       final val = v.evaluate(l);
-      if (val.brand == null) continue; // marche non seguite: non salvate
+      // Marche non seguite, non orologi, senza prezzo: non salvati.
+      if (val.verdict == Verdict.nonPertinente) continue;
       added.add(Entry(l, val));
       if (val.model != null &&
           l.price != null &&

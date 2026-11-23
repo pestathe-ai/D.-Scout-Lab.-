@@ -1,6 +1,7 @@
 import 'catalog.dart';
 import 'models.dart';
 import 'text_utils.dart';
+import 'watch_filter.dart';
 
 enum Confidence { alta, media, bassa }
 
@@ -93,7 +94,9 @@ const partsOnly = [
   'solo scatola', 'box only', 'per ricambi', 'pezzi di ricambio', 'solo quadrante',
   'solo cassa', 'solo movimento', 'solo lancette', 'vetro zaffiro per', 'maglie per',
   'fibbia per', 'sveglia da comodino', 'orologio da parete', 'orologio da muro',
-  'orologio da tavolo', 'pendolo', 'cucù',
+  'orologio da tavolo', 'pendolo', 'cucù', 'scatola per orologio', 'box per orologio',
+  'correa para', 'correa milanesa', 'caja y bolsa', 'solo scatola e',
+  'per pezzi', 'para piezas', 'lotto di', 'lote de',
 ];
 
 const urgency = [
@@ -161,6 +164,13 @@ class Valuator {
     final text = normalize(rawText).replaceAll('di rado', 'di_raramente');
     final reasons = <String>[];
 
+    if (classifyWatch(text) == false) {
+      return _result(
+        price: price,
+        verdict: Verdict.nonPertinente,
+        reasons: ['Non sembra un orologio da polso'],
+      );
+    }
     final found = detectBrand(text);
     if (found == null) {
       return _result(

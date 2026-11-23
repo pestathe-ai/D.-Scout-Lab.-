@@ -1,3 +1,4 @@
+import 'watch_filter.dart';
 import 'models.dart';
 import 'parsers.dart';
 
@@ -13,3 +14,12 @@ Listing listingFromRemote(RemoteItem i, {DateTime? at}) => Listing(
       imageUrl: i.imageUrl,
       place: i.place,
     );
+
+/// Tiene solo gli orologi: si fida della categoria del sito e, se il sito
+/// non la indica, chiede che il testo parli chiaramente di un orologio.
+bool acceptRemote(RemoteItem i) {
+  if (i.isWatch == false) return false;
+  final c = classifyWatch('${i.title} ${i.description}');
+  if (i.isWatch == true) return c != false;
+  return c == true;
+}

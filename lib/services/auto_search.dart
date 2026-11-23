@@ -39,10 +39,11 @@ Future<int> runSearch(Scout scout, {void Function(String)? onProgress}) async {
             'eBay' => await searcher.ebay(q, keys),
             _ => const <RemoteItem>[],
           };
-          found += items.length;
+          final watches = items.where(acceptRemote).toList();
+          found += watches.length;
           final now = DateTime.now();
-          final added = await scout
-              .ingestAll([for (final i in items) listingFromRemote(i, at: now)]);
+          final added = await scout.ingestAll(
+              [for (final i in watches) listingFromRemote(i, at: now)]);
           fresh += added.length;
         } on SearchError catch (e) {
           error = e.toString();

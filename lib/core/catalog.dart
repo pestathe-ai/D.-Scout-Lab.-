@@ -163,6 +163,9 @@ const models = <WatchModel>[
       low: 80, high: 140),
 
   // ---- Omega ----
+  WatchModel(id: 'omega_moonswatch', brandId: 'omega', name: 'Omega x Swatch MoonSwatch',
+      aliases: ['moonswatch', 'moon swatch', 'swatch', 'mission to', 'mission on'],
+      low: 170, high: 280, liquidity: Liquidity.alta),
   WatchModel(id: 'omega_moonwatch', brandId: 'omega', name: 'Omega Speedmaster Professional',
       aliases: ['moonwatch', 'speedmaster professional', '311.30.42.30', '310.30.42.50',
           '3570.50', '3572.50', '145.022', '145022'],
