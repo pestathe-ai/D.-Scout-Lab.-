@@ -15,4 +15,4 @@ jobs:
       - name: Probe
         run: |
           mkdir -p /tmp/p/tool && cp -r lib /tmp/p/ && cp -r tool/probe /tmp/p/tool/
-          cd /tmp/p && dart run tool/probe/probe.dart seiko
+          cd /tmp/p && dart run tool/probe/probe.dart seiko && dart run tool/probe/categories.dart
