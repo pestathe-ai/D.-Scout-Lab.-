@@ -260,7 +260,7 @@ class _EvaluatePageState extends State<_EvaluatePage> {
       price: _priceValue,
       seenAt: DateTime.now(),
     );
-    await widget.scout.ingest(l, alert: false);
+    await widget.scout.ingestAll([l], alert: false);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Salvato: conta anche per lo storico prezzi')));
