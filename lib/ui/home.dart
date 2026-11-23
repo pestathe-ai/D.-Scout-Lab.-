@@ -11,6 +11,7 @@ import '../services/scout.dart';
 import '../services/store.dart';
 import 'theme.dart';
 import 'valuation_card.dart';
+import 'vinted_tab.dart';
 
 class HomePage extends StatefulWidget {
   final Scout scout;
@@ -50,7 +51,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final pages = <Widget>[
-      _DealsPage(scout: scout, onOpenSettings: () => setState(() => _tab = 3)),
+      _DealsPage(scout: scout, onOpenSettings: () => setState(() => _tab = 4)),
+      VintedTab(scout: scout, active: _tab == 1),
       _AllPage(scout: scout),
       _EvaluatePage(scout: scout),
       _SettingsPage(scout: scout),
@@ -59,13 +61,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       appBar: AppBar(title: const Text('D. Scout Lab')),
       body: ListenableBuilder(
         listenable: scout,
-        builder: (context, _) => pages[_tab],
+        builder: (context, _) => IndexedStack(index: _tab, children: pages),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
         onDestinationSelected: (i) => setState(() => _tab = i),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.local_offer_outlined), selectedIcon: Icon(Icons.local_offer), label: 'Affari'),
+          NavigationDestination(icon: Icon(Icons.storefront_outlined), selectedIcon: Icon(Icons.storefront), label: 'Vinted'),
           NavigationDestination(icon: Icon(Icons.list_alt_outlined), selectedIcon: Icon(Icons.list_alt), label: 'Tutti'),
           NavigationDestination(icon: Icon(Icons.calculate_outlined), selectedIcon: Icon(Icons.calculate), label: 'Valuta'),
           NavigationDestination(icon: Icon(Icons.tune_outlined), selectedIcon: Icon(Icons.tune), label: 'Impostazioni'),
@@ -396,7 +399,7 @@ class _SettingsPage extends StatelessWidget {
             expandedCrossAxisAlignment: CrossAxisAlignment.start,
             children: const [
               Text(
-                  'Subito ed eBay li cerca l\'app da sola (Ricerca automatica, in alto). Vinted, Catawiki e Facebook Marketplace invece non si lasciano interrogare: per quelli l\'app legge le notifiche delle ricerche salvate.\n\n'
+                  'Subito ed eBay li cerca l\'app da sola (Ricerca automatica, in alto). Vinted lo sfogli nella scheda Vinted, con i bollini di valutazione; in più l\'app legge le notifiche delle sue ricerche salvate, come per Catawiki e Facebook Marketplace.\n\n'
                   '1. Tocca "Attiva" qui sopra e consenti a D. Scout Lab l\'accesso alle notifiche. Su Android 13 o più recenti, se è grigio: Impostazioni → App → D. Scout Lab → ⋮ → "Consenti impostazioni con limitazioni", poi riprova.\n\n'
                   '2. In ogni app di annunci cerca una marca (es. "Omega"), filtra per categoria Orologi e salva la ricerca con le notifiche attive:\n'
                   '   • Subito: "Salva ricerca" → notifiche attive\n'
