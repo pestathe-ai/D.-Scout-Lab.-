@@ -1,0 +1,18 @@
+name: Probe sorgenti
+
+on:
+  push:
+    branches: [main]
+    paths: ['lib/core/**', 'tool/probe/**', '.github/workflows/probe.yml']
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dart-lang/setup-dart@v1
+      - name: Probe
+        run: |
+          mkdir -p /tmp/p/tool && cp -r lib /tmp/p/ && cp -r tool/probe /tmp/p/tool/
+          cd /tmp/p && dart run tool/probe/probe.dart seiko
