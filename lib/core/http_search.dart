@@ -44,7 +44,6 @@ class EbayToken {
 class SiteSearcher {
   final HttpClient _client;
   final Duration timeout;
-  final Map<String, String> _vintedCookies = {};
   final EbayToken ebayToken;
 
   SiteSearcher({this.timeout = const Duration(seconds: 20), EbayToken? token})
@@ -107,45 +106,6 @@ class SiteSearcher {
     }
     try {
       return parseSubitoHtml(r.body);
-    } on FormatException catch (e) {
-      throw SearchError(e.message, status: r.status);
-    }
-  }
-
-  // ---------- Vinted ----------
-  Future<void> _vintedSession() async {
-    final r = await _send('GET', Uri.https('www.vinted.it', '/'), headers: {
-      HttpHeaders.acceptHeader: 'text/html',
-    });
-    for (final c in r.cookies) {
-      _vintedCookies[c.name] = c.value;
-    }
-  }
-
-  Future<List<RemoteItem>> vinted(String query) async {
-    if (_vintedCookies.isEmpty) await _vintedSession();
-    Future<HttpResult> call() => _send(
-          'GET',
-          Uri.https('www.vinted.it', '/api/v2/catalog/items', {
-            'search_text': query,
-            'order': 'newest_first',
-            'per_page': '48',
-            'page': '1',
-          }),
-          headers: {
-            HttpHeaders.acceptHeader: 'application/json',
-            HttpHeaders.cookieHeader:
-                _vintedCookies.entries.map((e) => '${e.key}=${e.value}').join('; '),
-          },
-        );
-    var r = await call();
-    if (r.status == 401) {
-      _vintedCookies.clear();
-      await _vintedSession();
-      r = await call();
-    }
-    try {
-      return parseVinted(_json(r, 'Vinted'));
     } on FormatException catch (e) {
       throw SearchError(e.message, status: r.status);
     }

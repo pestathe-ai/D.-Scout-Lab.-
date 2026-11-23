@@ -173,32 +173,6 @@ String? _subitoImage(Map<String, dynamic> m) {
   return null;
 }
 
-// ---------------- Vinted ----------------
-
-List<RemoteItem> parseVinted(dynamic data, {String host = 'www.vinted.it'}) {
-  final items = dig(data, ['items']);
-  if (items is! List) {
-    throw const FormatException('Vinted: risposta senza "items"');
-  }
-  return [
-    for (final e in items)
-      if (e is Map && str(e['id']) != null)
-        RemoteItem(
-          source: 'Vinted',
-          id: str(e['id'])!,
-          title: [str(e['title']), str(e['brand_title'])]
-              .whereType<String>()
-              .join(' · '),
-          description: [str(e['size_title']), str(e['status'])]
-              .whereType<String>()
-              .join(' · '),
-          price: priceOf(e['price']),
-          url: str(e['url']) ?? 'https://$host/items/${e['id']}',
-          imageUrl: str(dig(e, ['photo', 'url'])),
-        ),
-  ];
-}
-
 // ---------------- Wallapop ----------------
 
 List<RemoteItem> parseWallapop(dynamic data) {

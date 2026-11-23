@@ -16,6 +16,7 @@ if 'POST_NOTIFICATIONS' not in m:
         '<application',
         '<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n'
         '    <uses-permission android:name="android.permission.INTERNET"/>\n'
+        '    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>\n'
         '    <application', 1)
 service = '''
         <service android:label="D. Scout Lab"

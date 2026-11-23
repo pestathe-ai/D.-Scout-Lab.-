@@ -1,21 +1,29 @@
 import 'package:flutter/services.dart';
 
-/// Avvisi sul telefono, tramite un piccolo canale nativo (MainActivity.kt).
-class Alerts {
-  static const _ch = MethodChannel('scout_lab/alerts');
+/// Funzioni native dell'app (MainActivity.kt): permessi, link, batteria.
+class AppNative {
+  static const _ch = MethodChannel('scout_lab/app');
 
-  static Future<void> requestPermission() async {
+  static Future<T?> _call<T>(String m, [Object? args]) async {
     try {
-      await _ch.invokeMethod<void>('requestPermission');
+      return await _ch.invokeMethod<T>(m, args);
     } on PlatformException catch (_) {
-    } on MissingPluginException catch (_) {}
+      return null;
+    } on MissingPluginException catch (_) {
+      return null;
+    }
   }
 
-  static Future<void> show(int id, String title, String body) async {
-    try {
-      await _ch.invokeMethod<void>(
-          'show', {'id': id, 'title': title, 'body': body});
-    } on PlatformException catch (_) {
-    } on MissingPluginException catch (_) {}
-  }
+  static Future<void> requestNotificationPermission() =>
+      _call<void>('requestPermission');
+
+  static Future<bool> openUrl(String url) async =>
+      await _call<bool>('openUrl', {'url': url}) ?? false;
+
+  /// Vero se Android non limita l'app in sottofondo.
+  static Future<bool> batteryUnrestricted() async =>
+      await _call<bool>('batteryUnrestricted') ?? false;
+
+  static Future<void> requestBatteryExemption() =>
+      _call<void>('requestBatteryExemption');
 }

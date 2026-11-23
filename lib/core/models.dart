@@ -7,6 +7,9 @@ class Listing {
   final double? price;
   final DateTime seenAt;
   final bool dismissed;
+  final String? url;
+  final String? imageUrl;
+  final String? place;
 
   const Listing({
     required this.id,
@@ -16,6 +19,9 @@ class Listing {
     required this.price,
     required this.seenAt,
     this.dismissed = false,
+    this.url,
+    this.imageUrl,
+    this.place,
   });
 
   Listing copyWith({bool? dismissed}) => Listing(
@@ -26,6 +32,9 @@ class Listing {
         price: price,
         seenAt: seenAt,
         dismissed: dismissed ?? this.dismissed,
+        url: url,
+        imageUrl: imageUrl,
+        place: place,
       );
 
   Map<String, dynamic> toJson() => {
@@ -36,6 +45,9 @@ class Listing {
         'price': price,
         'seenAt': seenAt.millisecondsSinceEpoch,
         'dismissed': dismissed,
+        if (url != null) 'url': url,
+        if (imageUrl != null) 'img': imageUrl,
+        if (place != null) 'place': place,
       };
 
   factory Listing.fromJson(Map<String, dynamic> j) => Listing(
@@ -47,6 +59,9 @@ class Listing {
         seenAt: DateTime.fromMillisecondsSinceEpoch(
             (j['seenAt'] as num?)?.toInt() ?? 0),
         dismissed: j['dismissed'] as bool? ?? false,
+        url: j['url'] as String?,
+        imageUrl: j['img'] as String?,
+        place: j['place'] as String?,
       );
 }
 

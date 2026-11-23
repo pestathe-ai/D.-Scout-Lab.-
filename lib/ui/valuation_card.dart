@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../core/catalog.dart';
 import '../core/models.dart';
 import '../core/valuator.dart';
+import '../services/alerts.dart';
 import 'theme.dart';
 
 class ValuationCard extends StatefulWidget {
@@ -51,7 +52,8 @@ class _ValuationCardState extends State<ValuationCard> {
                   if (l != null)
                     Flexible(
                       child: Text(
-                        '${l.source} · ${_ago(l.seenAt)}',
+                        [l.source, _ago(l.seenAt), if (l.place != null) l.place!]
+                            .join(' · '),
                         style: t.bodySmall?.copyWith(color: Colors.grey.shade700),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -142,7 +144,13 @@ class _ValuationCardState extends State<ValuationCard> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      TextButton.icon(
+                      if (l.url != null)
+                        FilledButton.tonalIcon(
+                          onPressed: () => AppNative.openUrl(l.url!),
+                          icon: const Icon(Icons.open_in_new, size: 18),
+                          label: const Text('Apri'),
+                        ),
+                      if (l.url == null) TextButton.icon(
                         onPressed: () async {
                           await Clipboard.setData(
                               ClipboardData(text: '${l.title} ${l.text}'.trim()));

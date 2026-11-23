@@ -92,7 +92,8 @@ const partsOnly = [
   'solo cinturino', 'cinturino per', 'solo bracciale', 'bracciale per', 'scatola vuota',
   'solo scatola', 'box only', 'per ricambi', 'pezzi di ricambio', 'solo quadrante',
   'solo cassa', 'solo movimento', 'solo lancette', 'vetro zaffiro per', 'maglie per',
-  'fibbia per',
+  'fibbia per', 'sveglia da comodino', 'orologio da parete', 'orologio da muro',
+  'orologio da tavolo', 'pendolo', 'cucù',
 ];
 
 const urgency = [

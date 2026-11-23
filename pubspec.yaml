@@ -1,7 +1,7 @@
 name: scout_lab
 description: "D. Scout Lab: trova affari sugli orologi usati leggendo le notifiche delle app di annunci."
 publish_to: 'none'
-version: 0.1.0+1
+version: 0.2.0+2
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
@@ -11,6 +11,9 @@ dependencies:
     sdk: flutter
   notification_listener_service: ^1.0.0
   shared_preferences: ^2.3.0
+  workmanager: ^0.10.0
+  scout_native:
+    path: packages/scout_native
 
 dev_dependencies:
   flutter_test:
