@@ -41,11 +41,13 @@ Future<void> main(List<String> args) async {
     req3.headers.set('Cookie', cookie);
     final r3 = await req3.close();
     final b3 = await r3.transform(const SystemEncoding().decoder).join();
-    final apis3 = RegExp(r'/api/v2/[A-Za-z0-9_/\-]+').allMatches(b3).map((m) => m.group(0)).toSet().take(40).join(' ');
-    final hasPrice = RegExp(r'"price":\{').allMatches(b3).length;
-    final idx = b3.indexOf('"price":{');
-    final around = idx < 0 ? '' : b3.substring((idx - 600).clamp(0, b3.length), (idx + 300).clamp(0, b3.length));
-    print('::notice title=vinted catalog page::${esc('status ${r3.statusCode} len ${b3.length} priceObjs $hasPrice nextdata ${b3.contains('__NEXT_DATA__')} flight ${b3.contains('self.__next_f')}\napis: $apis3\n---\n$around')}');
+    final apis3 = RegExp(r'(?:web/)?api/v\d[^"\\ ,]{0,50}').allMatches(b3).map((m) => m.group(0)).toSet().take(40).join(' | ');
+    final i1 = b3.indexOf('amount');
+    final i2 = b3.indexOf('seiko', b3.indexOf('self.__next_f'));
+    String ctx(int i) => i < 0 ? '-' : b3.substring((i - 500).clamp(0, b3.length), (i + 500).clamp(0, b3.length));
+    print('::notice title=vinted catalog page::${esc('status ${r3.statusCode} len ${b3.length} amountCount ${'amount'.allMatches(b3).length}\napis: $apis3')}');
+    print('::notice title=vinted ctx amount::${esc(ctx(i1))}');
+    print('::notice title=vinted ctx seiko::${esc(ctx(i2))}');
     for (final path in ['/api/v2/catalog/items', '/api/v2/items', '/api/v2/catalog/search']) {
       final rq = await c.getUrl(Uri.https('www.vinted.it', path, {'search_text': q, 'per_page': '5'}));
       rq.headers.set('Cookie', cookie);
