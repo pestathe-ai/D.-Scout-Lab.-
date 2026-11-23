@@ -1,7 +1,7 @@
 name: scout_lab
 description: "D. Scout Lab: trova affari sugli orologi usati leggendo le notifiche delle app di annunci."
 publish_to: 'none'
-version: 0.4.0+6
+version: 0.4.1+7
 
 environment:
   sdk: ">=3.5.0 <4.0.0"

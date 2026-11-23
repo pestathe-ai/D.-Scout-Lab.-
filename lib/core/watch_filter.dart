@@ -63,8 +63,21 @@ const otherBrands = [
   'oris', 'hamilton', 'certina', 'mido', 'swatch', 'orient', 'casio', 'g-shock',
   'sector', 'breil', 'festina', 'fossil', 'lorenz', 'philip watch', 'vetta',
   'eberhard', 'girard', 'blancpain', 'chopard', 'bulova', 'junghans', 'sinn',
-  'nomos', 'glashutte', 'glashütte', 'poljot', 'vostok', 'tissot',
+  'nomos', 'glashutte', 'glashütte', 'poljot', 'vostok', 'pulsar', 'lorus',
+  'invicta', 'pierre bonnet', 'spinnaker', 'timex', 'daniel wellington', 'emporio armani',
+  'michael kors', 'hugo boss', 'diesel', 'police', 'lacoste', 'steinhart', 'san martin',
+  'pagani', 'addiesdive', 'heimdallr', 'citizen seiko',
 ];
+
+/// Frasi che citano un movimento di quella marca montato su un altro orologio
+/// (es. "quarzo Seiko", "movimento Seiko NH35"): non indicano la marca.
+final _movementRef = RegExp(
+    r'(movimento|meccanismo|meccanica|quarzo|quartz|calibro|cal\.?|motore|movement|macchina)\s+(giapponese\s+|automatico\s+|al quarzo\s+)?(seiko|citizen|miyota)'
+    r'|(seiko|citizen)\s+(instruments|nh|vk|vh|pe|ns|tmi)\s?-?\d*'
+    r'|(seiko|citizen|miyota)\s+(movement|movimento|quartz|caliber)');
+
+String stripMovementRefs(String text) =>
+    normalize(text).replaceAll(_movementRef, ' movimento_esterno ');
 
 /// Prima marca (seguita o no) citata nel titolo: restituisce il nome di
 /// una marca NON seguita se compare prima di quelle seguite.
@@ -138,7 +151,7 @@ class BrandMention {
 
 /// Tutte le marche citate nel testo, una volta ciascuna, in ordine di comparsa.
 List<BrandMention> brandMentions(String rawText) {
-  final text = normalize(rawText);
+  final text = stripMovementRefs(rawText);
   int pos(String term) {
     final m = RegExp('(^|[^a-z0-9])${RegExp.escape(term)}(?=\$|[^a-z0-9])')
         .firstMatch(text);

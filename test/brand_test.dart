@@ -44,6 +44,16 @@ void main() {
       expect(verdict(all, 'Seiko 5 automatico', '', siteBrand: 'Altro', price: 90),
           isNot(Verdict.nonPertinente));
     });
+    test('movimento Seiko su altre marche non conta', () {
+      expect(
+          verdict(all, 'Orologio uomo Pierre Bonnet Quarzo Seiko Nuovo', '',
+              siteBrand: 'Altro', price: 49),
+          Verdict.nonPertinente);
+      expect(verdict(all, 'Orologio subacqueo automatico', 'movimento Seiko NH35A'),
+          Verdict.nonPertinente);
+      expect(verdict(all, 'Seiko 5 automatico', 'movimento Seiko 7S26', price: 90),
+          isNot(Verdict.nonPertinente));
+    });
     test('Omega x Swatch resta Omega', () {
       expect(verdict(all, 'Omega x Swatch MoonSwatch Mission to Mars', '', price: 200),
           isNot(Verdict.nonPertinente));
