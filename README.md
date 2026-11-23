@@ -3,6 +3,13 @@
 App Android che trova **affari sugli orologi usati** (Seiko, Citizen, Omega, Zenith, Rado).
 Un'app Dom Studio.
 
+## Novità v0.5
+- **Scheda Vinted**: sfogli Vinted dentro l'app e ogni annuncio riceve un bollino
+  (Affare con punteggio e margine, Interessante, Da verificare, valore stimato, Scartato).
+  Non gira in sottofondo: Vinted blocca le ricerche automatiche.
+- Marche selezionabili (di base solo Seiko), marca vera dal campo Marca di Subito,
+  scarto degli annunci pieni di parole chiave di altre marche. Wallapop rimosso.
+
 ## Novità v0.2
 - **Ricerca automatica** su Subito, Wallapop ed eBay (API ufficiale), anche con l'app chiusa:
   ogni 15, 30 o 60 minuti, con pause di qualche secondo tra le richieste.
