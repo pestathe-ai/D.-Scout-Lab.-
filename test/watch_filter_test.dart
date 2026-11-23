@@ -71,33 +71,6 @@ void main() {
       expect(items[0].isWatch, isTrue);
       expect(items[1].isWatch, isFalse);
     });
-    test('Wallapop: tassonomia Watches', () {
-      final items = parseWallapop({
-        'items': [
-          {
-            'id': 'w1',
-            'title': 'Omega De Ville',
-            'web_slug': 's1',
-            'price': {'amount': 500},
-            'taxonomy': [
-              {'id': 18000, 'name': 'Collectibles & Art'},
-              {'id': 10086, 'name': 'Watches'}
-            ],
-          },
-          {
-            'id': 'w2',
-            'title': 'Pokémon Rubí Omega',
-            'web_slug': 's2',
-            'price': {'amount': 20},
-            'taxonomy': [
-              {'id': 24200, 'name': 'Technology & electronics'}
-            ],
-          },
-        ]
-      });
-      expect(items[0].isWatch, isTrue);
-      expect(items[1].isWatch, isFalse);
-    });
   });
 
   test('MoonSwatch non è un affare a 200 €', () {

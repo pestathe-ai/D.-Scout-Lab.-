@@ -112,50 +112,6 @@ class SiteSearcher {
     }
   }
 
-  // ---------- Wallapop ----------
-  /// Cerca nelle due categorie "orologi" di Wallapop
-  /// (Moda > Accessori > Orologi e Collezionismo > Orologi).
-  Future<List<RemoteItem>> wallapop(String query,
-      {double lat = 41.9028, double lng = 12.4964}) async {
-    final out = <RemoteItem>[];
-    final seen = <String>{};
-    SearchError? lastError;
-    for (final cat in const [
-      {'category_ids': '12465', 'subcategory_ids': '9562'},
-      {'category_ids': '18000', 'subcategory_ids': '10086'},
-    ]) {
-      final r = await _send(
-        'GET',
-        Uri.https('api.wallapop.com', '/api/v3/search', {
-          'keywords': query,
-          'source': 'search_box',
-          'order_by': 'newest',
-          'latitude': '$lat',
-          'longitude': '$lng',
-          ...cat,
-        }),
-        headers: {
-          HttpHeaders.acceptHeader: 'application/json',
-          'X-DeviceOS': '0',
-          'Origin': 'https://it.wallapop.com',
-          'Referer': 'https://it.wallapop.com/',
-        },
-      );
-      try {
-        for (final i in parseWallapop(_json(r, 'Wallapop'))) {
-          if (seen.add(i.id)) out.add(i);
-        }
-      } on SearchError catch (e) {
-        lastError = e;
-      } on FormatException catch (e) {
-        lastError = SearchError(e.message, status: r.status);
-      }
-      await Future<void>.delayed(const Duration(milliseconds: 1200));
-    }
-    if (out.isEmpty && lastError != null) throw lastError;
-    return out;
-  }
-
   // ---------- eBay (API ufficiale) ----------
   Future<String> _ebayAuth(EbayKeys keys) async {
     final now = DateTime.now();

@@ -14,6 +14,7 @@ Listing listingFromRemote(RemoteItem i, {DateTime? at}) => Listing(
       imageUrl: i.imageUrl,
       place: i.place,
       isWatch: i.isWatch,
+      siteBrand: i.siteBrand,
     );
 
 /// Tiene solo gli orologi: si fida della categoria del sito e, se il sito

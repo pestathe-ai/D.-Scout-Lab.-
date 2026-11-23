@@ -20,6 +20,9 @@ class RemoteItem {
   /// null = il sito non lo dice.
   final bool? isWatch;
 
+  /// Marca scelta dal venditore nel modulo del sito (se c'è).
+  final String? siteBrand;
+
   const RemoteItem({
     required this.source,
     required this.id,
@@ -30,14 +33,12 @@ class RemoteItem {
     this.imageUrl,
     this.place,
     this.isWatch,
+    this.siteBrand,
   });
 
   @override
   String toString() => '$source #$id "$title" ${price ?? '-'}€ ${url ?? ''}';
 }
-
-/// Id delle categorie "orologi" di Wallapop.
-const watchCategoryIds = {'9562', '10086'};
 
 // ---------------- helper JSON ----------------
 
@@ -148,6 +149,7 @@ List<RemoteItem> parseSubitoJson(dynamic data) {
       place: str(dig(m, ['geo', 'town', 'value'])) ??
           str(dig(m, ['geo', 'city', 'value'])),
       isWatch: _subitoIsWatch(m),
+      siteBrand: _subitoBrand(m),
     ));
   }
   return out;
@@ -169,6 +171,21 @@ double? _subitoPrice(Map<String, dynamic> m) {
     return priceOf(first['key']) ?? priceOf(first['value']);
   }
   return priceOf(m['price']);
+}
+
+/// Subito: marca scelta dal venditore (campo "Marca").
+String? _subitoBrand(Map<String, dynamic> m) {
+  final f = m['features'];
+  dynamic values;
+  if (f is Map) {
+    values = dig(f, ['/fashion/brand', 'values']) ?? dig(f, ['/brand', 'values']);
+  } else if (f is List) {
+    for (final e in f) {
+      if (e is Map && '${e['uri']}'.endsWith('/brand')) values = e['values'];
+    }
+  }
+  if (values is List && values.isNotEmpty) return str(dig(values.first, ['value']));
+  return null;
 }
 
 /// Subito: categoria 16 (Abbigliamento e Accessori) con tipologia
@@ -206,47 +223,6 @@ String? _subitoImage(Map<String, dynamic> m) {
   final scale = dig(first, ['scale']);
   if (scale is List && scale.isNotEmpty) return str(dig(scale.last, ['uri']));
   return null;
-}
-
-// ---------------- Wallapop ----------------
-
-List<RemoteItem> parseWallapop(dynamic data) {
-  final maps = findMaps(
-      data,
-      (m) =>
-          m['title'] is String &&
-          (m['web_slug'] is String ||
-              (m.containsKey('id') && m.containsKey('price'))));
-  final seen = <String>{};
-  final out = <RemoteItem>[];
-  for (final m in maps) {
-    final id = str(m['id']) ?? str(m['web_slug']);
-    if (id == null || !seen.add(id)) continue;
-    final slug = str(m['web_slug']);
-    out.add(RemoteItem(
-      source: 'Wallapop',
-      id: id,
-      title: str(m['title']) ?? '',
-      description: str(m['description']) ?? '',
-      price: priceOf(m['price']) ?? priceOf(m['sale_price']),
-      url: slug == null ? null : 'https://it.wallapop.com/item/$slug',
-      imageUrl: str(dig(m, ['images', 0, 'urls', 'medium'])) ??
-          str(dig(m, ['images', 0, 'medium'])),
-      place: str(dig(m, ['location', 'city'])),
-      isWatch: _wallapopIsWatch(m),
-    ));
-  }
-  return out;
-}
-
-/// Wallapop: sottocategorie "Watches" (9562 in Moda, 10086 in Collezionismo).
-bool? _wallapopIsWatch(Map<String, dynamic> m) {
-  final tax = m['taxonomy'];
-  if (tax is! List || tax.isEmpty) return null;
-  return tax.any((t) =>
-      t is Map &&
-      (watchCategoryIds.contains(str(t['id'])) ||
-          (str(t['name']) ?? '').toLowerCase().contains('watch')));
 }
 
 // ---------------- eBay (API ufficiale Browse) ----------------

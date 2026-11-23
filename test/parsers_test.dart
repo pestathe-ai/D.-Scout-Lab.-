@@ -55,30 +55,6 @@ void main() {
     expect(() => parseSubitoHtml('<html></html>'), throwsFormatException);
   });
 
-  test('Wallapop: risultati di ricerca', () {
-    final data = {
-      'data': {
-        'section': {
-          'payload': {
-            'items': [
-              {
-                'id': 'abc',
-                'title': 'Zenith El Primero',
-                'description': 'urgente',
-                'price': {'amount': 2900, 'currency': 'EUR'},
-                'web_slug': 'zenith-el-primero-123',
-                'location': {'city': 'Roma'},
-              }
-            ]
-          }
-        }
-      }
-    };
-    final items = parseWallapop(data);
-    expect(items.single.price, 2900);
-    expect(items.single.url, 'https://it.wallapop.com/item/zenith-el-primero-123');
-  });
-
   test('eBay: Browse API', () {
     final data = {
       'total': 1,

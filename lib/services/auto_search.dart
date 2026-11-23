@@ -35,7 +35,6 @@ Future<int> runSearch(Scout scout, {void Function(String)? onProgress}) async {
         try {
           final List<RemoteItem> items = switch (site) {
             'Subito' => await searcher.subito(q),
-            'Wallapop' => await searcher.wallapop(q),
             'eBay' => await searcher.ebay(q, keys),
             _ => const <RemoteItem>[],
           };

@@ -149,7 +149,7 @@ class _DealsPage extends StatelessWidget {
             icon: Icons.notifications_active_outlined,
             title: 'Attiva la lettura delle notifiche',
             body:
-                "D. Scout Lab legge le notifiche delle ricerche salvate di Subito, Vinted, Wallapop, Catawiki ed eBay e valuta ogni annuncio. Non usa il tuo account e non scrive a nessuno.",
+                "D. Scout Lab legge le notifiche delle ricerche salvate di Subito, Vinted, Catawiki ed eBay e valuta ogni annuncio. Non usa il tuo account e non scrive a nessuno.",
             action: 'Attiva',
             onAction: scout.requestListenerPermission,
           ),
@@ -158,7 +158,7 @@ class _DealsPage extends StatelessWidget {
             icon: Icons.search,
             title: 'Nessun affare per ora',
             body:
-                "Tocca \"Cerca ora\" per controllare subito Subito, Wallapop ed eBay, oppure attiva la ricerca automatica nelle Impostazioni. Gli affari compaiono qui.",
+                "Tocca \"Cerca ora\" per controllare subito Subito ed eBay, oppure attiva la ricerca automatica nelle Impostazioni. Gli affari compaiono qui.",
             action: 'Come iniziare',
             onAction: onOpenSettings,
           ),
@@ -396,12 +396,11 @@ class _SettingsPage extends StatelessWidget {
             expandedCrossAxisAlignment: CrossAxisAlignment.start,
             children: const [
               Text(
-                  'Subito, Wallapop ed eBay li cerca l\'app da sola (Ricerca automatica, in alto). Vinted, Catawiki e Facebook Marketplace invece non si lasciano interrogare: per quelli l\'app legge le notifiche delle ricerche salvate.\n\n'
+                  'Subito ed eBay li cerca l\'app da sola (Ricerca automatica, in alto). Vinted, Catawiki e Facebook Marketplace invece non si lasciano interrogare: per quelli l\'app legge le notifiche delle ricerche salvate.\n\n'
                   '1. Tocca "Attiva" qui sopra e consenti a D. Scout Lab l\'accesso alle notifiche. Su Android 13 o più recenti, se è grigio: Impostazioni → App → D. Scout Lab → ⋮ → "Consenti impostazioni con limitazioni", poi riprova.\n\n'
                   '2. In ogni app di annunci cerca una marca (es. "Omega"), filtra per categoria Orologi e salva la ricerca con le notifiche attive:\n'
                   '   • Subito: "Salva ricerca" → notifiche attive\n'
                   '   • Vinted: "Salva ricerca" (icona campanella)\n'
-                  '   • Wallapop: "Salva ricerca" → avvisi\n'
                   '   • eBay: "Salva questa ricerca" → notifiche push\n'
                   '   • Catawiki: segui la categoria o l\'oggetto\n\n'
                   '3. Fallo per ogni marca: Seiko, Citizen, Omega, Zenith, Rado. Aggiungi anche gli errori di battitura (es. "Omgea", "Zenit"): lì si trovano i prezzi migliori.\n\n'
@@ -629,8 +628,8 @@ class _AutoSearchCardState extends State<_AutoSearchCard> {
 
   Future<void> _addQuery() async {
     final q = _newQuery.text.trim().toLowerCase();
-    if (q.isEmpty || store.queries.contains(q)) return;
-    await store.setQueries([...store.queries, q]);
+    if (q.isEmpty || store.extraQueries.contains(q)) return;
+    await store.setExtraQueries([...store.extraQueries, q]);
     _newQuery.clear();
     widget.scout.changed();
     setState(() {});
@@ -762,27 +761,59 @@ class _AutoSearchCardState extends State<_AutoSearchCard> {
               ),
             ],
             const SizedBox(height: 12),
-            Text('Cosa cercare', style: t.labelLarge),
+            Text('Marche che segui', style: t.labelLarge),
             const SizedBox(height: 6),
             Wrap(
               spacing: 6,
               runSpacing: 6,
               children: [
-                for (final q in store.queries)
-                  InputChip(
-                    label: Text(q),
-                    onDeleted: store.queries.length <= 1
-                        ? null
-                        : () async {
-                            await store.setQueries(
-                                store.queries.where((x) => x != q).toList());
-                            widget.scout.changed();
-                            setState(() {});
-                          },
+                for (final b in brands)
+                  FilterChip(
+                    label: Text(b.name),
+                    selected: store.enabledBrands.contains(b.id),
+                    onSelected: (on) async {
+                      final set = {...store.enabledBrands};
+                      on ? set.add(b.id) : set.remove(b.id);
+                      if (set.isEmpty) return; // almeno una marca
+                      await store.setEnabledBrands(set);
+                      widget.scout.changed();
+                      setState(() {});
+                    },
                   ),
               ],
             ),
-            const SizedBox(height: 8),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+              value: store.searchMisspellings,
+              title: const Text('Cerca anche i nomi scritti male'),
+              subtitle: Text(
+                  'Es. ${brands.where((b) => store.enabledBrands.contains(b.id)).expand((b) => b.misspellings.take(2)).take(4).join(', ')}: meno concorrenza'),
+              onChanged: (v) async {
+                await store.setSearchMisspellings(v);
+                widget.scout.changed();
+                setState(() {});
+              },
+            ),
+            const SizedBox(height: 4),
+            Text('Parole in più (modelli, referenze)', style: t.labelLarge),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final q in store.extraQueries)
+                  InputChip(
+                    label: Text(q),
+                    onDeleted: () async {
+                      await store.setExtraQueries(
+                          store.extraQueries.where((x) => x != q).toList());
+                      widget.scout.changed();
+                      setState(() {});
+                    },
+                  ),
+              ],
+            ),
             Row(children: [
               Expanded(
                 child: TextField(
@@ -790,11 +821,14 @@ class _AutoSearchCardState extends State<_AutoSearchCard> {
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) => _addQuery(),
                   decoration: const InputDecoration(
-                      hintText: 'Aggiungi (es. omgea, speedmaster)'),
+                      hintText: 'Aggiungi (es. seiko skx, alpinist)'),
                 ),
               ),
               IconButton(onPressed: _addQuery, icon: const Icon(Icons.add)),
             ]),
+            const SizedBox(height: 6),
+            Text('Cerco: ${store.queries.join(', ')}',
+                style: t.bodySmall?.copyWith(color: Colors.grey.shade700)),
             const SizedBox(height: 8),
             Text(
               'Ogni parola viene cercata su ogni sito, con una pausa di qualche secondo tra una richiesta e l\'altra. Più parole = controllo più lungo.',

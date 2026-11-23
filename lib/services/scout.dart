@@ -54,14 +54,15 @@ class Scout extends ChangeNotifier {
     for (final p in _history) {
       (map[p.modelId] ??= []).add(p.price);
     }
-    return Valuator(settings: _settings, history: map);
+    return Valuator(
+        settings: _settings, history: map, enabledBrands: store.enabledBrands);
   }
 
   List<Entry> get entries {
     final v = valuator;
     return [
       for (final l in _listings.reversed)
-        if (!l.dismissed) Entry(l, v.evaluate(l)),
+        if (!l.dismissed && l.source != 'Wallapop') Entry(l, v.evaluate(l)),
     ].where((e) => e.valuation.verdict != Verdict.nonPertinente).toList();
   }
 

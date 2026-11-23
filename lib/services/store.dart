@@ -2,13 +2,14 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/catalog.dart';
 import '../core/models.dart';
 import '../core/valuator.dart';
 
 /// Siti su cui l'app sa cercare da sola.
-const searchSites = ['Subito', 'Wallapop', 'eBay'];
+const searchSites = ['Subito', 'eBay'];
 
-const defaultQueries = ['seiko', 'citizen', 'omega', 'zenith', 'rado'];
+const defaultBrands = {'seiko'};
 
 /// Esito dell'ultima ricerca su un sito.
 class SiteStatus {
@@ -52,7 +53,9 @@ class Store {
   static const _kAlerts = 'alerts_v1';
   static const _kAuto = 'auto_v1';
   static const _kInterval = 'interval_v1';
-  static const _kQueries = 'queries_v1';
+  static const _kBrands = 'brands_v1';
+  static const _kExtras = 'extras_v1';
+  static const _kMisspell = 'misspell_v1';
   static const _kSites = 'sites_v1';
   static const _kEbayId = 'ebay_id_v1';
   static const _kEbayCert = 'ebay_cert_v1';
@@ -110,11 +113,37 @@ class Store {
   int get intervalMinutes => _prefs.getInt(_kInterval) ?? 30;
   Future<void> setInterval(int m) => _prefs.setInt(_kInterval, m);
 
-  List<String> get queries => _prefs.getStringList(_kQueries) ?? defaultQueries;
-  Future<void> setQueries(List<String> q) => _prefs.setStringList(_kQueries, q);
+  /// Marche seguite (id del catalogo).
+  Set<String> get enabledBrands =>
+      (_prefs.getStringList(_kBrands) ?? defaultBrands.toList()).toSet();
+  Future<void> setEnabledBrands(Set<String> b) =>
+      _prefs.setStringList(_kBrands, b.toList());
+
+  /// Parole di ricerca aggiunte a mano (es. "speedmaster", "skx").
+  List<String> get extraQueries => _prefs.getStringList(_kExtras) ?? const [];
+  Future<void> setExtraQueries(List<String> q) =>
+      _prefs.setStringList(_kExtras, q);
+
+  /// Cerca anche i nomi scritti male (es. "seico").
+  bool get searchMisspellings => _prefs.getBool(_kMisspell) ?? true;
+  Future<void> setSearchMisspellings(bool v) => _prefs.setBool(_kMisspell, v);
+
+  /// Tutte le parole da cercare: marche seguite, errori comuni, parole extra.
+  List<String> get queries {
+    final out = <String>[];
+    for (final b in brands) {
+      if (!enabledBrands.contains(b.id)) continue;
+      out.add(b.names.first);
+      if (searchMisspellings) out.addAll(b.misspellings.take(2));
+    }
+    for (final q in extraQueries) {
+      if (!out.contains(q)) out.add(q);
+    }
+    return out;
+  }
 
   Set<String> get sites =>
-      (_prefs.getStringList(_kSites) ?? const ['Subito', 'Wallapop']).toSet();
+      (_prefs.getStringList(_kSites) ?? const ['Subito']).toSet();
   Future<void> setSites(Set<String> s) =>
       _prefs.setStringList(_kSites, s.toList());
 

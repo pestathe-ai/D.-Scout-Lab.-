@@ -14,7 +14,6 @@ class Source {
 const sources = <Source>[
   Source('Subito', ['subito']),
   Source('Vinted', ['vinted']),
-  Source('Wallapop', ['wallapop']),
   Source('Catawiki', ['catawiki']),
   Source('eBay', ['ebay']),
   Source('Chrono24', ['chrono24']),

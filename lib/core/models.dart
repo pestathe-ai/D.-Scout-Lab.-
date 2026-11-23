@@ -14,6 +14,9 @@ class Listing {
   /// Categoria del sito: true = orologi, null = non indicata.
   final bool? isWatch;
 
+  /// Marca indicata dal venditore nel modulo del sito.
+  final String? siteBrand;
+
   const Listing({
     required this.id,
     required this.source,
@@ -26,6 +29,7 @@ class Listing {
     this.imageUrl,
     this.place,
     this.isWatch,
+    this.siteBrand,
   });
 
   Listing copyWith({bool? dismissed}) => Listing(
@@ -40,6 +44,7 @@ class Listing {
         imageUrl: imageUrl,
         place: place,
         isWatch: isWatch,
+        siteBrand: siteBrand,
       );
 
   Map<String, dynamic> toJson() => {
@@ -54,6 +59,7 @@ class Listing {
         if (imageUrl != null) 'img': imageUrl,
         if (place != null) 'place': place,
         if (isWatch != null) 'watch': isWatch,
+        if (siteBrand != null) 'brand': siteBrand,
       };
 
   factory Listing.fromJson(Map<String, dynamic> j) => Listing(
@@ -69,6 +75,7 @@ class Listing {
         imageUrl: j['img'] as String?,
         place: j['place'] as String?,
         isWatch: j['watch'] as bool?,
+        siteBrand: j['brand'] as String?,
       );
 }
 

@@ -119,3 +119,108 @@ bool? classifyWatch(String rawText, {String title = ''}) {
   }
   return null;
 }
+
+/// Sinonimi di marche non seguite, per non contarle due volte.
+const _otherAlias = {
+  'tag heuer': 'heuer',
+  'universal genève': 'universal geneve',
+  'glashütte': 'glashutte',
+  'g-shock': 'casio',
+};
+
+class BrandMention {
+  /// id della marca seguita (es. "seiko") oppure nome dell'altra marca.
+  final String key;
+  final int pos;
+  final bool followed;
+  const BrandMention(this.key, this.pos, this.followed);
+}
+
+/// Tutte le marche citate nel testo, una volta ciascuna, in ordine di comparsa.
+List<BrandMention> brandMentions(String rawText) {
+  final text = normalize(rawText);
+  int pos(String term) {
+    final m = RegExp('(^|[^a-z0-9])${RegExp.escape(term)}(?=\$|[^a-z0-9])')
+        .firstMatch(text);
+    return m == null ? -1 : m.start;
+  }
+
+  final found = <String, BrandMention>{};
+  for (final b in brands) {
+    for (final n in [...b.names, ...b.misspellings]) {
+      final p = pos(n);
+      if (p >= 0 && (found[b.id] == null || p < found[b.id]!.pos)) {
+        found[b.id] = BrandMention(b.id, p, true);
+      }
+    }
+  }
+  for (final o in otherBrands) {
+    final key = _otherAlias[o] ?? o;
+    final p = pos(o);
+    if (p >= 0 && (found[key] == null || p < found[key]!.pos)) {
+      found[key] = BrandMention(key, p, false);
+    }
+  }
+  return found.values.toList()..sort((a, b) => a.pos.compareTo(b.pos));
+}
+
+/// Marca vera dell'annuncio.
+/// - Se il sito indica la marca scelta dal venditore, vale quella.
+/// - Altrimenti conta la prima marca del titolo; un titolo con 3 o più marche
+///   diverse è un elenco di parole chiave.
+/// - Se il titolo non ne cita, la descrizione deve citarne una sola.
+({Brand? brand, String? misspelling, String? reason}) resolveBrand({
+  required String title,
+  required String body,
+  String? siteBrand,
+}) {
+  ({Brand? brand, String? misspelling, String? reason}) followedBrand(
+      String id, String fromText) {
+    final b = brandById(id)!;
+    final t = normalize(fromText);
+    final miss = firstTerm(t, b.names) == null ? firstTerm(t, b.misspellings) : null;
+    return (brand: b, misspelling: miss, reason: null);
+  }
+
+  final sb = siteBrand == null ? '' : normalize(siteBrand);
+  const generic = ['altro', 'altre marche', 'altra marca', 'other', 'nessuna', 'non specificata'];
+  if (sb.isNotEmpty && !generic.contains(sb)) {
+    final m = brandMentions(sb);
+    if (m.isNotEmpty && m.first.followed) return followedBrand(m.first.key, title);
+    return (
+      brand: null,
+      misspelling: null,
+      reason: 'Il venditore indica la marca "$siteBrand"'
+    );
+  }
+
+  final inTitle = brandMentions(title);
+  if (inTitle.length >= 3) {
+    return (
+      brand: null,
+      misspelling: null,
+      reason: 'Titolo pieno di marche diverse: parole chiave'
+    );
+  }
+  if (inTitle.isNotEmpty) {
+    final first = inTitle.first;
+    if (first.followed) return followedBrand(first.key, title);
+    return (brand: null, misspelling: null, reason: 'È di un\'altra marca (${first.key})');
+  }
+
+  final inBody = brandMentions(body);
+  if (inBody.isEmpty) {
+    return (brand: null, misspelling: null, reason: 'Nessuna delle marche seguite');
+  }
+  if (inBody.length == 1 && inBody.first.followed) {
+    return followedBrand(inBody.first.key, body);
+  }
+  if (inBody.length == 1) {
+    return (brand: null, misspelling: null, reason: 'È di un\'altra marca (${inBody.first.key})');
+  }
+  return (
+    brand: null,
+    misspelling: null,
+    reason: 'Marca non nel titolo e diverse marche nel testo: parole chiave'
+  );
+}

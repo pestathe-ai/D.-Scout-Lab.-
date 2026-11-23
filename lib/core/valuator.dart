@@ -127,7 +127,14 @@ class Valuator {
   /// Prezzi osservati per modello (asking price degli annunci).
   final Map<String, List<double>> history;
 
-  const Valuator({this.settings = const Settings(), this.history = const {}});
+  /// Marche da seguire (id); null = tutte.
+  final Set<String>? enabledBrands;
+
+  const Valuator({
+    this.settings = const Settings(),
+    this.history = const {},
+    this.enabledBrands,
+  });
 
   /// Riconosce la marca, segnalando se è scritta male.
   static ({Brand brand, String? misspelling})? detectBrand(String text) {
@@ -162,12 +169,13 @@ class Valuator {
         listing.price,
         title: listing.title,
         siteSaysWatch: listing.isWatch,
+        siteBrand: listing.siteBrand,
       );
 
   /// [title]: titolo dell'annuncio (se assente si usa la prima riga).
   /// [siteSaysWatch]: true se il sito lo mette nella categoria orologi.
   Valuation evaluateText(String rawText, double? price,
-      {String? title, bool? siteSaysWatch}) {
+      {String? title, bool? siteSaysWatch, String? siteBrand}) {
     // "di rado" (raramente) non è la marca Rado.
     final text = normalize(rawText).replaceAll('di rado', 'di_raramente');
     final head = title ?? rawText.trim().split('\n').first;
@@ -181,23 +189,26 @@ class Valuator {
         reasons: ['Non sembra un orologio da polso'],
       );
     }
-    final other = otherBrandFirst(head);
-    if (other != null) {
+    final body = title == null
+        ? rawText.trim().split('\n').skip(1).join(' ')
+        : rawText.replaceFirst(title, '');
+    final found = resolveBrand(title: head, body: body, siteBrand: siteBrand);
+    if (found.brand == null) {
       return _result(
         price: price,
         verdict: Verdict.nonPertinente,
-        reasons: ['È di un\'altra marca ($other)'],
+        reasons: [found.reason ?? 'Nessuna delle marche seguite'],
       );
     }
-    final found = detectBrand(text);
-    if (found == null) {
+    if (enabledBrands != null && !enabledBrands!.contains(found.brand!.id)) {
       return _result(
+        brand: found.brand,
         price: price,
         verdict: Verdict.nonPertinente,
-        reasons: ['Nessuna delle marche seguite'],
+        reasons: ['Marca non selezionata (${found.brand!.name})'],
       );
     }
-    final brand = found.brand;
+    final brand = found.brand!;
     final model = detectModel(text, brand);
     if (kind == null && model == null && siteSaysWatch != true) {
       return _result(
