@@ -34,13 +34,26 @@ Future<void> main(List<String> args) async {
   try {
     final r1 = await (await c.getUrl(Uri.https('www.vinted.it', '/'))).close();
     final b1 = await r1.transform(const SystemEncoding().decoder).join();
-    final names = r1.cookies.map((k) => k.name).join(',');
-    final req2 = await c.getUrl(Uri.https('www.vinted.it', '/api/v2/catalog/items', {'search_text': q, 'per_page': '5'}));
-    req2.headers.set('Cookie', r1.cookies.map((k) => '${k.name}=${k.value}').join('; '));
-    req2.headers.set('Accept', 'application/json');
-    final r2 = await req2.close();
-    final b2 = await r2.transform(const SystemEncoding().decoder).join();
-    print('::notice title=vinted diag::${esc('home ${r1.statusCode} len ${b1.length} cookies [$names]\napi ${r2.statusCode} ${r2.headers.value('server')} ${b2.length > 300 ? b2.substring(0, 300) : b2}')}');
+    final cookie = r1.cookies.where((k) => k.value.isNotEmpty).map((k) => '${k.name}=${k.value}').join('; ');
+    final apis = RegExp(r'/api/v2/[A-Za-z0-9_/\-]+').allMatches(b1).map((m) => m.group(0)).toSet().take(40).join(' ');
+    print('::notice title=vinted apis home::${esc(apis)}');
+    final req3 = await c.getUrl(Uri.https('www.vinted.it', '/catalog', {'search_text': q, 'order': 'newest_first'}));
+    req3.headers.set('Cookie', cookie);
+    final r3 = await req3.close();
+    final b3 = await r3.transform(const SystemEncoding().decoder).join();
+    final apis3 = RegExp(r'/api/v2/[A-Za-z0-9_/\-]+').allMatches(b3).map((m) => m.group(0)).toSet().take(40).join(' ');
+    final hasPrice = RegExp(r'"price":\{').allMatches(b3).length;
+    final idx = b3.indexOf('"price":{');
+    final around = idx < 0 ? '' : b3.substring((idx - 600).clamp(0, b3.length), (idx + 300).clamp(0, b3.length));
+    print('::notice title=vinted catalog page::${esc('status ${r3.statusCode} len ${b3.length} priceObjs $hasPrice nextdata ${b3.contains('__NEXT_DATA__')} flight ${b3.contains('self.__next_f')}\napis: $apis3\n---\n$around')}');
+    for (final path in ['/api/v2/catalog/items', '/api/v2/items', '/api/v2/catalog/search']) {
+      final rq = await c.getUrl(Uri.https('www.vinted.it', path, {'search_text': q, 'per_page': '5'}));
+      rq.headers.set('Cookie', cookie);
+      rq.headers.set('Accept', 'application/json, text/plain, */*');
+      final rr = await rq.close();
+      final bb = await rr.transform(const SystemEncoding().decoder).join();
+      print('::notice title=vinted try $path::${esc('${rr.statusCode} ${bb.length > 200 ? bb.substring(0, 200) : bb}')}');
+    }
   } catch (e) {
     print('::warning title=vinted diag::${esc('$e')}');
   }
