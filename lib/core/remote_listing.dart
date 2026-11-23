@@ -13,13 +13,14 @@ Listing listingFromRemote(RemoteItem i, {DateTime? at}) => Listing(
       url: i.url,
       imageUrl: i.imageUrl,
       place: i.place,
+      isWatch: i.isWatch,
     );
 
 /// Tiene solo gli orologi: si fida della categoria del sito e, se il sito
 /// non la indica, chiede che il testo parli chiaramente di un orologio.
 bool acceptRemote(RemoteItem i) {
   if (i.isWatch == false) return false;
-  final c = classifyWatch('${i.title} ${i.description}');
+  final c = classifyWatch('${i.title} ${i.description}', title: i.title);
   if (i.isWatch == true) return c != false;
   return c == true;
 }

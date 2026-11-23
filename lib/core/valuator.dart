@@ -97,7 +97,7 @@ const partsOnly = [
   'fibbia per', 'sveglia da comodino', 'orologio da parete', 'orologio da muro',
   'orologio da tavolo', 'pendolo', 'cucù', 'scatola per orologio', 'box per orologio',
   'correa para', 'correa milanesa', 'caja y bolsa', 'solo scatola e',
-  'per pezzi', 'para piezas', 'lotto di', 'lote de',
+  'per pezzi', 'para piezas', 'lotto', 'lote', 'stock di',
 ];
 
 const urgency = [
@@ -157,19 +157,36 @@ class Valuator {
     return best;
   }
 
-  Valuation evaluate(Listing listing) =>
-      evaluateText('${listing.title} ${listing.text}', listing.price);
+  Valuation evaluate(Listing listing) => evaluateText(
+        '${listing.title} ${listing.text}',
+        listing.price,
+        title: listing.title,
+        siteSaysWatch: listing.isWatch,
+      );
 
-  Valuation evaluateText(String rawText, double? price) {
+  /// [title]: titolo dell'annuncio (se assente si usa la prima riga).
+  /// [siteSaysWatch]: true se il sito lo mette nella categoria orologi.
+  Valuation evaluateText(String rawText, double? price,
+      {String? title, bool? siteSaysWatch}) {
     // "di rado" (raramente) non è la marca Rado.
     final text = normalize(rawText).replaceAll('di rado', 'di_raramente');
+    final head = title ?? rawText.trim().split('\n').first;
     final reasons = <String>[];
 
-    if (classifyWatch(text) == false) {
+    final kind = classifyWatch(text, title: head);
+    if (kind == false || siteSaysWatch == false) {
       return _result(
         price: price,
         verdict: Verdict.nonPertinente,
         reasons: ['Non sembra un orologio da polso'],
+      );
+    }
+    final other = otherBrandFirst(head);
+    if (other != null) {
+      return _result(
+        price: price,
+        verdict: Verdict.nonPertinente,
+        reasons: ['È di un\'altra marca ($other)'],
       );
     }
     final found = detectBrand(text);
@@ -182,6 +199,14 @@ class Valuator {
     }
     final brand = found.brand;
     final model = detectModel(text, brand);
+    if (kind == null && model == null && siteSaysWatch != true) {
+      return _result(
+        brand: brand,
+        price: price,
+        verdict: Verdict.nonPertinente,
+        reasons: ['Non è chiaro che sia un orologio'],
+      );
+    }
 
     final flag = firstTerm(text, redFlags);
     if (flag != null) {

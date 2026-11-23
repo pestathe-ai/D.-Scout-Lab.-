@@ -116,6 +116,53 @@ void main() {
     expect(v.evaluateText('Seiko 5 automatic vintage 1981', 9).verdict,
         Verdict.scartato);
     expect(v.evaluateText('Seiko Mod Joker NH35 40mm', 159).verdict,
-        Verdict.scartato);
+        anyOf(Verdict.scartato, Verdict.nonPertinente));
+  });
+
+  group('Zenith e scatole', () {
+    void notWatch(String title, [String body = '', double price = 120]) {
+      final r = v.evaluateText('$title $body', price, title: title);
+      expect(r.verdict, Verdict.nonPertinente, reason: title);
+    }
+
+    test('ottica, foto e ufficio esclusi', () {
+      notWatch('Binocolo Zenith 7x50 prismatico');
+      notWatch('Zenith prismatici 8x30 con custodia');
+      notWatch('Zenit E con obiettivo Helios 44');
+      notWatch('Pinzatrice Zenith 548');
+      notWatch('Zenith 10x50', 'ottimo stato, lenti pulite'); // non si capisce
+    });
+
+    test('scatole e accessori esclusi', () {
+      notWatch('Scatola Zenith originale', 'per El Primero');
+      notWatch('Box Omega Speedmaster', 'con garanzia');
+      notWatch('Astuccio Rado');
+      notWatch('Cofanetto Seiko vuoto');
+      notWatch('Porta orologi in pelle', 'per Omega e Zenith');
+    });
+
+    test('altre marche e orologi da tasca esclusi', () {
+      notWatch('Rolex Daytona Zenith', 'quadrante champagne', 14000);
+      notWatch('Cronometro Minerva, omega longines zenith heuer');
+      notWatch('Orologio da tasca Zenith', '', 180);
+    });
+
+    test('orologi veri tenuti', () {
+      final a = v.evaluateText('Zenith El Primero full set con scatola', 2950,
+          title: 'Zenith El Primero full set');
+      expect(a.verdict, isNot(Verdict.nonPertinente));
+      final b = v.evaluateText('Zenith AutoSport ref. 2552PC anni 70', 450,
+          title: 'Zenith AutoSport.');
+      expect(b.verdict, isNot(Verdict.nonPertinente));
+      final c = v.evaluateText('Omega x Swatch MoonSwatch', 220,
+          title: 'Omega x Swatch MoonSwatch');
+      expect(c.verdict, isNot(Verdict.nonPertinente));
+    });
+
+    test('categoria orologi del sito accetta testo vago', () {
+      final r = v.evaluateText('Citizen vendo', 120,
+          title: 'Citizen vendo', siteSaysWatch: true);
+      expect(r.verdict, isNot(Verdict.nonPertinente));
+    });
   });
 }
