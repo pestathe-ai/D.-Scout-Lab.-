@@ -1,0 +1,19 @@
+name: scout_native
+description: Avvisi nativi per D. Scout Lab (funziona anche in sottofondo).
+version: 0.1.0
+publish_to: 'none'
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+  flutter: ">=3.3.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: dev.scoutlab.scout_native
+        pluginClass: ScoutNativePlugin
